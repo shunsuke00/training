@@ -20,11 +20,52 @@ async function getConnection() {
   });
 }
 
-// Express.js: GETリクエストで /users → DB のデータを返す
-app.get("/users", async (_req, res) => {
-  const conn = await getConnection();
-  const [rows] = await conn.execute("SELECT * FROM users");
-  res.json(rows);
+// Express.js: GETリクエスト: usersから全件取得、searchWordクエリパラメータがあれば検索
+app.get("/users", async (req, res) => {
+  try {
+    const conn = await getConnection();
+    
+    if(Object.keys(req.query).length > 0) {
+      // クエリパラメータがある場合、検索取得
+      const { searchWord } = req.query;
+      if(searchWord === undefined) {
+        return res.status(400).json({ message: "searchWord が必要です" });
+      }
+
+      const [result] = await conn.execute(
+        "SELECT * FROM users WHERE name LIKE ?",
+        [`%${searchWord}%`]  // SQLのLIKEで用いられるワイルドカード。正規表現ではない。
+      );
+      res.json(result);
+    } else {
+      // クエリパラメータがない場合、全件取得
+      const [result] = await conn.execute("SELECT * FROM users");
+      res.json(result);
+    }
+  } catch(err) {
+    res.status(500).json({ error: "サーバーエラー", detail: err });
+  }
+});
+
+// Express.js: GETリクエスト: usersからidで単一取得
+app.get("/users/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const conn = await getConnection();
+    const [result] = await conn.execute(
+      "SELECT * FROM users WHERE id = ?",
+      [id]
+    );
+
+    if ((result as any[]).length === 0) {
+      return res.status(404).json({ message: "ユーザーが存在しません" });
+    }
+
+    res.json((result as any[])[0]);
+  } catch(err) {
+    res.status(500).json({ error: "サーバーエラー", detail: err });
+  }
 });
 
 // nameからemailを生成する関数
@@ -38,7 +79,7 @@ function generateEmail(fullName: string): string | null {
   return `${firstName}@example.com`;
 }
 
-// Express.js: POSTリクエストで /users → DB にデータを追加
+// Express.js: POSTリクエスト: usersにデータ追加
 app.post("/users", async (req, res) => {
   // リクエストからnameとemailを取り出す
   const { name } = req.body;
@@ -67,7 +108,7 @@ app.post("/users", async (req, res) => {
 });
 
 
-// Express.js: PUTリクエストで /users → DB にデータを更新
+// Express.js: PUTリクエスト: usersのデータ更新
 app.put("/users/:id", async (req, res) => {
   // リクエストからidとnameとemailを取り出す
   const { id } = req.params;
@@ -99,7 +140,7 @@ app.put("/users/:id", async (req, res) => {
   }
 });
 
-// Express.js: DELETEリクエストで /users → DB にデータを削除
+// Express.js: DELETEリクエスト: usersのデータ削除
 app.delete("/users/:id", async (req, res) => {
   const { id } = req.params;
 
