@@ -1,13 +1,43 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 defineProps<{ msg: string }>()
 
 const count = ref(0)
+
+// API利用
+const table = ref<{id: number, name: string, email: string}[]>([])
+
+onMounted(async () => {
+  const res = await fetch('http://localhost:3000/users')
+  table.value = await res.json()
+})
 </script>
 
 <template>
   <h1>{{ msg }}</h1>
+
+  <!-- DBの表示 -->
+  <div>
+    <table v-if="table.length > 0">
+      <caption>users table</caption>
+      <thead>
+        <tr>
+          <th>id</th>
+          <th>name</th>
+          <th>email</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="record in table" :key="record.id">
+          <td>{{ record.id }}</td>
+          <td>{{ record.name }}</td>
+          <td>{{ record.email }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <p v-else>Can't get data.</p>
+  </div>
 
   <div class="card">
     <button type="button" @click="count++">count is {{ count }}</button>

@@ -4,7 +4,7 @@ FROM nginx:alpine
 # 2. ビルド済みファイルを Nginx の標準配信ディレクトリにコピー
 COPY dist/ /usr/share/nginx/html
 
-# 3. 80番ポートを公開
+# 3. 80番ポートをコンテナが公開
 EXPOSE 80
 
 # 4. Nginx をフォアグラウンドで起動

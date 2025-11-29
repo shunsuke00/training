@@ -1,11 +1,17 @@
 import express from "express";
 import mysql from "mysql2/promise";
+import cors from "cors";
 
 // Express.js: 使用するための魔法
 const app = express();
 
 // application/json で送られた JSON を req.body に入れる魔法
 app.use(express.json());
+// corsでVue画面からのみアクセスできるように設定
+app.use(cors({
+  origin: "http://localhost:8080"
+}));
+
 
 // API側のポート番号を書いておく
 const port = 3000;
