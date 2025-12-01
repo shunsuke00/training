@@ -1,0 +1,31 @@
+services:
+  db:
+    build: ./database
+    container_name: ${DB_CONTAINER_NAME}
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: mysql
+      MYSQL_DATABASE: sampledb
+    volumes:
+      - db-data-compose:/var/lib/mysql
+
+  api:
+    build: ./api
+    container_name: api-node-compose
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: ${DB_CONTAINER_NAME}
+      DB_USER: root
+      DB_PASSWORD: mysql
+      DB_NAME: sampledb
+    volumes:
+      - ./api:/usr/src/app
+
+volumes:
+  db-data-compose:
