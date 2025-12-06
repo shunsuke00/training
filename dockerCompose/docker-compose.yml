@@ -26,6 +26,15 @@ services:
       DB_NAME: sampledb
     volumes:
       - ./api:/usr/src/app
+    
+  frontend:
+    build: ./frontend
+    container_name: frontend-nginx-compose
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
 
 volumes:
   db-data-compose:
